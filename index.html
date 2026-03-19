@@ -27,52 +27,88 @@
     <section class="hero">
       <div class="hero-badge">Safe Exam Browser</div>
       <h1>Nettressurser</h1>
-      <p>
-        Velg ressursen du trenger for å komme raskt i gang.
-      </p>
+      <p>Velg ressursen du trenger for å komme raskt i gang.</p>
+
+      <div class="search-wrapper">
+        <input
+          type="text"
+          id="resourceSearch"
+          class="search-input"
+          placeholder="Søk etter nettressurs..."
+          aria-label="Søk etter nettressurs"
+        />
+      </div>
     </section>
 
-    <section class="resource-grid">
-      <a class="resource-card" href="https://itslearning.com/" target="_blank" rel="noopener noreferrer">
+    <section class="resource-grid" id="resourceGrid">
+      <a class="resource-card" href="https://itslearning.com/" target="_blank" rel="noopener noreferrer" data-name="it's learning læringsplattform itslearning">
         <span class="resource-title">It's Learning</span>
         <span class="resource-subtitle">Læringsplattform</span>
       </a>
 
-      <a class="resource-card" href="https://www.geogebra.org/classic" target="_blank" rel="noopener noreferrer">
+      <a class="resource-card" href="https://www.geogebra.org/classic" target="_blank" rel="noopener noreferrer" data-name="geogebra matematikk">
         <span class="resource-title">GeoGebra</span>
         <span class="resource-subtitle">Matematikkverktøy</span>
       </a>
 
-      <a class="resource-card" href="https://app.clarify.no/auth" target="_blank" rel="noopener noreferrer">
+      <a class="resource-card" href="https://app.clarify.no/auth" target="_blank" rel="noopener noreferrer" data-name="clarify innlogging">
         <span class="resource-title">Clarify</span>
-        <span class="resource-subtitle">Ordbok</span>
+        <span class="resource-subtitle">Innlogging</span>
       </a>
 
-      <a class="resource-card" href="https://www.pendel.no/" target="_blank" rel="noopener noreferrer">
+      <a class="resource-card" href="https://www.pendel.no/" target="_blank" rel="noopener noreferrer" data-name="pendel norsk">
         <span class="resource-title">Pendel</span>
-        <span class="resource-subtitle">Nettbøker</span>
+        <span class="resource-subtitle">Norskressurs</span>
       </a>
 
-      <a class="resource-card" href="https://cosinus.cappelendamm.no/" target="_blank" rel="noopener noreferrer">
+      <a class="resource-card" href="https://cosinus.cappelendamm.no/" target="_blank" rel="noopener noreferrer" data-name="cosinus matematikk">
         <span class="resource-title">Cosinus</span>
         <span class="resource-subtitle">Matematikk</span>
       </a>
 
-      <a class="resource-card" href="https://ndla.no/" target="_blank" rel="noopener noreferrer">
+      <a class="resource-card" href="https://ndla.no/" target="_blank" rel="noopener noreferrer" data-name="ndla fagressurser">
         <span class="resource-title">NDLA</span>
         <span class="resource-subtitle">Fagressurser</span>
       </a>
 
-      <a class="resource-card" href="https://snl.no/" target="_blank" rel="noopener noreferrer">
+      <a class="resource-card" href="https://snl.no/" target="_blank" rel="noopener noreferrer" data-name="snl store norske leksikon">
         <span class="resource-title">SNL</span>
         <span class="resource-subtitle">Store norske leksikon</span>
       </a>
 
-      <a class="resource-card" href="https://lexin.oslomet.no/#/" target="_blank" rel="noopener noreferrer">
+      <a class="resource-card" href="https://lexin.oslomet.no/#/" target="_blank" rel="noopener noreferrer" data-name="lexin ordbok språkstøtte">
         <span class="resource-title">Lexin</span>
         <span class="resource-subtitle">Ordbok og språkstøtte</span>
       </a>
     </section>
+
+    <p id="noResults" class="no-results" hidden>
+      Ingen nettressurser matcher søket ditt.
+    </p>
   </main>
+
+  <script>
+    const searchInput = document.getElementById("resourceSearch");
+    const resourceCards = document.querySelectorAll(".resource-card");
+    const noResults = document.getElementById("noResults");
+
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.toLowerCase().trim();
+      let visibleCount = 0;
+
+      resourceCards.forEach((card) => {
+        const searchableText = card.dataset.name.toLowerCase();
+
+        if (searchableText.includes(query)) {
+          card.style.display = "flex";
+          visibleCount++;
+        } else {
+          card.style.display = "none";
+        }
+      });
+
+      noResults.hidden = visibleCount !== 0;
+    });
+  </script>
 </body>
 </html>
