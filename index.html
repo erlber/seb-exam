@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
+  <script src="./js/msal-browser.min.js"></script>
 </head>
 <body>
   <div class="page-bg"></div>
@@ -22,9 +23,10 @@
     <span class="brand-text">Kristen Videregående Skole Nordland</span>
   </div>
 
-  <button class="quit-btn" id="openQuitModal">
-    Avslutt SEB
-  </button>
+    <div class="header-actions">
+    <button class="portal-btn" id="teacherPortalBtn">Lærerportal</button>
+    <button class="quit-btn" id="openQuitModal">Avslutt SEB</button>
+    </div>
 </header>
 
   <main class="wrapper">
@@ -150,20 +152,20 @@
   const quitError = document.getElementById("quitError");
 
   const quitPassword = "quit";
-  const quitUrl = "https://kvn.no/seb/quit"; // Bytt til faktisk quit-URL
+  const quitUrl = "https://kvn.no/seb/quit";
 
-function openQuitModal() {
-  quitModal.classList.add("active");
-  quitPasswordInput.value = "";
-  quitError.hidden = true;
-  setTimeout(() => quitPasswordInput.focus(), 50);
-}
+  function openQuitModal() {
+    quitModal.classList.add("active");
+    quitPasswordInput.value = "";
+    quitError.hidden = true;
+    setTimeout(() => quitPasswordInput.focus(), 50);
+  }
 
-function closeQuitModal() {
-  quitModal.classList.remove("active");
-  quitPasswordInput.value = "";
-  quitError.hidden = true;
-}
+  function closeQuitModal() {
+    quitModal.classList.remove("active");
+    quitPasswordInput.value = "";
+    quitError.hidden = true;
+  }
 
   function handleQuit() {
     const inputValue = quitPasswordInput.value.trim();
@@ -183,20 +185,51 @@ function closeQuitModal() {
   confirmQuitBtn.addEventListener("click", handleQuit);
 
   quitPasswordInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      handleQuit();
-    }
-
-    if (event.key === "Escape") {
-      closeQuitModal();
-    }
+    if (event.key === "Enter") handleQuit();
+    if (event.key === "Escape") closeQuitModal();
   });
 
   quitModal.addEventListener("click", (event) => {
-    if (event.target === quitModal) {
-      closeQuitModal();
-    }
+    if (event.target === quitModal) closeQuitModal();
   });
+
+  const msalConfig = {
+    auth: {
+      clientId: "2b7e1ad7-9781-4395-99b5-2e33246c6692",
+      authority: "https://login.microsoftonline.com/5742a723-902a-4a88-ac5c-da38069007df",
+      redirectUri: "https://erlber.github.io/seb-exam/teacher.html"
+    },
+    cache: {
+      cacheLocation: "localStorage"
+    }
+  };
+
+  const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+  async function initAuth() {
+    await msalInstance.initialize();
+
+    const response = await msalInstance.handleRedirectPromise();
+
+    if (response && response.account) {
+      msalInstance.setActiveAccount(response.account);
+      window.location.href = "teacher.html";
+      return;
+    }
+
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length > 0) {
+      msalInstance.setActiveAccount(accounts[0]);
+    }
+  }
+
+  document.getElementById("teacherPortalBtn").addEventListener("click", async () => {
+    await msalInstance.loginRedirect({
+      scopes: ["openid", "profile", "email"]
+    });
+  });
+
+  initAuth();
 </script>
 </body>
 </html>
