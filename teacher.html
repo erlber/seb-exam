@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lærerportal</title>
+
+  <script src="https://alcdn.msauth.net/browser/2.39.0/js/msal-browser.min.js"></script>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 40px;
+      background: #f5f7fb;
+    }
+
+    .card {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .password {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #1f2f63;
+      margin-top: 10px;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: none;
+      background: #1f2f63;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Lærerportal</h2>
+  <p id="user"></p>
+
+  <p>Avslutningskode:</p>
+  <div class="password">quit</div>
+
+  <button id="logout">Logg ut</button>
+</div>
+
+<script>
+const msalConfig = {
+  auth: {
+    clientId: "2b7e1ad7-9781-4395-99b5-2e33246c6692",
+    authority: "https://login.microsoftonline.com/5742a723-902a-4a88-ac5c-da38069007df",
+    redirectUri: "https://erlber.github.io/seb-exam/teacher.html"
+  }
+};
+
+const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+async function init() {
+  await msalInstance.initialize();
+  await msalInstance.handleRedirectPromise();
+
+  const accounts = msalInstance.getAllAccounts();
+
+  if (accounts.length === 0) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  const account = accounts[0];
+  document.getElementById("user").textContent = account.username;
+}
+
+document.getElementById("logout").onclick = () => {
+  msalInstance.logoutRedirect({
+    postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
+  });
+};
+
+init();
+</script>
+
+</body>
+</html>
