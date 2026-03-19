@@ -197,12 +197,13 @@
     auth: {
       clientId: "2b7e1ad7-9781-4395-99b5-2e33246c6692",
       authority: "https://login.microsoftonline.com/5742a723-902a-4a88-ac5c-da38069007df",
-      redirectUri: "https://erlber.github.io/seb-exam/teacher.html"
-    },
-    cache: {
-      cacheLocation: "localStorage"
-    }
-  };
+    redirectUri: "https://erlber.github.io/seb-exam/",
+    postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
+  },
+  cache: {
+    cacheLocation: "localStorage"
+  }
+};
 
   const msalInstance = new msal.PublicClientApplication(msalConfig);
 

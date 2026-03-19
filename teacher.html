@@ -70,6 +70,7 @@
 
   async function initTeacherPage() {
     await msalInstance.initialize();
+    await msalInstance.handleRedirectPromise();
 
     const accounts = msalInstance.getAllAccounts();
 
@@ -88,17 +89,10 @@
   document.getElementById("logout").addEventListener("click", async () => {
     const account = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
 
-    try {
-      await msalInstance.logoutRedirect({
-        account,
-        postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
-      });
-    } catch (error) {
-      console.error("Logout-feil:", error);
-      sessionStorage.clear();
-      localStorage.clear();
-      window.location.href = "https://erlber.github.io/seb-exam/";
-    }
+    await msalInstance.logoutRedirect({
+      account,
+      postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
+    });
   });
 
   initTeacherPage();
