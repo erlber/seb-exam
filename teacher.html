@@ -56,9 +56,10 @@
 <script>
   const msalConfig = {
     auth: {
-      clientId: "DIN_CLIENT_ID",
-      authority: "https://login.microsoftonline.com/DIN_TENANT_ID",
-      redirectUri: "https://erlber.github.io/seb-exam/"
+      clientId: "2b7e1ad7-9781-4395-99b5-2e33246c6692",
+      authority: "https://login.microsoftonline.com/5742a723-902a-4a88-ac5c-da38069007df",
+      redirectUri: "https://erlber.github.io/seb-exam/",
+      postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
     },
     cache: {
       cacheLocation: "sessionStorage"
@@ -85,9 +86,19 @@
   }
 
   document.getElementById("logout").addEventListener("click", async () => {
-    await msalInstance.logoutRedirect({
-      postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
-    });
+    const account = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
+
+    try {
+      await msalInstance.logoutRedirect({
+        account,
+        postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
+      });
+    } catch (error) {
+      console.error("Logout-feil:", error);
+      sessionStorage.clear();
+      localStorage.clear();
+      window.location.href = "https://erlber.github.io/seb-exam/";
+    }
   });
 
   initTeacherPage();
