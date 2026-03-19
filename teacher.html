@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Lærerportal</title>
 
-  <script src="https://alcdn.msauth.net/browser/2.39.0/js/msal-browser.min.js"></script>
+  <script src="./js/msal-browser.min.js"></script>
 
   <style>
     body {
@@ -54,38 +54,43 @@
 </div>
 
 <script>
-const msalConfig = {
-  auth: {
-    clientId: "2b7e1ad7-9781-4395-99b5-2e33246c6692",
-    authority: "https://login.microsoftonline.com/5742a723-902a-4a88-ac5c-da38069007df",
-    redirectUri: "https://erlber.github.io/seb-exam/teacher.html"
+  const msalConfig = {
+    auth: {
+      clientId: "DIN_CLIENT_ID",
+      authority: "https://login.microsoftonline.com/DIN_TENANT_ID",
+      redirectUri: "https://erlber.github.io/seb-exam/"
+    },
+    cache: {
+      cacheLocation: "sessionStorage"
+    }
+  };
+
+  const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+  async function initTeacherPage() {
+    await msalInstance.initialize();
+
+    const accounts = msalInstance.getAllAccounts();
+
+    if (!accounts.length) {
+      window.location.href = "index.html";
+      return;
+    }
+
+    const account = accounts[0];
+    msalInstance.setActiveAccount(account);
+
+    document.getElementById("user").textContent =
+      account.name || account.username || "Ukjent bruker";
   }
-};
 
-const msalInstance = new msal.PublicClientApplication(msalConfig);
-
-async function init() {
-  await msalInstance.initialize();
-  await msalInstance.handleRedirectPromise();
-
-  const accounts = msalInstance.getAllAccounts();
-
-  if (accounts.length === 0) {
-    window.location.href = "index.html";
-    return;
-  }
-
-  const account = accounts[0];
-  document.getElementById("user").textContent = account.username;
-}
-
-document.getElementById("logout").onclick = () => {
-  msalInstance.logoutRedirect({
-    postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
+  document.getElementById("logout").addEventListener("click", async () => {
+    await msalInstance.logoutRedirect({
+      postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
+    });
   });
-};
 
-init();
+  initTeacherPage();
 </script>
 
 </body>
