@@ -22,7 +22,7 @@
     <span class="brand-text">Kristen Videregående Skole Nordland</span>
   </div>
 
-  <button class="quit-btn" onclick="window.location.href='https://kvn.no/seb/quit'">
+  <button class="quit-btn" id="openQuitModal">
     Avslutt SEB
   </button>
 </header>
@@ -91,28 +91,112 @@
     </p>
   </main>
 
-  <script>
-    const searchInput = document.getElementById("resourceSearch");
-    const resourceCards = document.querySelectorAll(".resource-card");
-    const noResults = document.getElementById("noResults");
+  <div class="modal-overlay" id="quitModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Avslutt SEB</h2>
+      <button class="modal-close" id="closeQuitModal" aria-label="Lukk">×</button>
+    </div>
 
-    searchInput.addEventListener("input", () => {
-      const query = searchInput.value.toLowerCase().trim();
-      let visibleCount = 0;
+    <p class="modal-text">
+      Skriv inn kode for å avslutte Safe Exam Browser.
+    </p>
 
-      resourceCards.forEach((card) => {
-        const searchableText = card.dataset.name.toLowerCase();
+    <input
+      type="password"
+      id="quitPasswordInput"
+      class="modal-input"
+      placeholder="Skriv inn kode"
+    />
 
-        if (searchableText.includes(query)) {
-          card.style.display = "flex";
-          visibleCount++;
-        } else {
-          card.style.display = "none";
-        }
-      });
+    <p class="modal-error" id="quitError" hidden>Feil kode</p>
 
-      noResults.hidden = visibleCount !== 0;
+    <div class="modal-actions">
+      <button class="modal-cancel" id="cancelQuit">Avbryt</button>
+      <button class="modal-confirm" id="confirmQuit">Avslutt SEB</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const searchInput = document.getElementById("resourceSearch");
+  const resourceCards = document.querySelectorAll(".resource-card");
+  const noResults = document.getElementById("noResults");
+
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase().trim();
+    let visibleCount = 0;
+
+    resourceCards.forEach((card) => {
+      const searchableText = card.dataset.name.toLowerCase();
+
+      if (searchableText.includes(query)) {
+        card.style.display = "flex";
+        visibleCount++;
+      } else {
+        card.style.display = "none";
+      }
     });
-  </script>
+
+    noResults.hidden = visibleCount !== 0;
+  });
+
+  const openQuitModalBtn = document.getElementById("openQuitModal");
+  const closeQuitModalBtn = document.getElementById("closeQuitModal");
+  const cancelQuitBtn = document.getElementById("cancelQuit");
+  const confirmQuitBtn = document.getElementById("confirmQuit");
+  const quitModal = document.getElementById("quitModal");
+  const quitPasswordInput = document.getElementById("quitPasswordInput");
+  const quitError = document.getElementById("quitError");
+
+  const quitPassword = "quit";
+  const quitUrl = "https://kvn.no/seb/quit"; // Bytt til faktisk quit-URL
+
+function openQuitModal() {
+  quitModal.classList.add("active");
+  quitPasswordInput.value = "";
+  quitError.hidden = true;
+  setTimeout(() => quitPasswordInput.focus(), 50);
+}
+
+function closeQuitModal() {
+  quitModal.classList.remove("active");
+  quitPasswordInput.value = "";
+  quitError.hidden = true;
+}
+
+  function handleQuit() {
+    const inputValue = quitPasswordInput.value.trim();
+
+    if (inputValue === quitPassword) {
+      window.location.href = quitUrl;
+    } else {
+      quitError.hidden = false;
+      quitPasswordInput.focus();
+      quitPasswordInput.select();
+    }
+  }
+
+  openQuitModalBtn.addEventListener("click", openQuitModal);
+  closeQuitModalBtn.addEventListener("click", closeQuitModal);
+  cancelQuitBtn.addEventListener("click", closeQuitModal);
+  confirmQuitBtn.addEventListener("click", handleQuit);
+
+  quitPasswordInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      handleQuit();
+    }
+
+    if (event.key === "Escape") {
+      closeQuitModal();
+    }
+  });
+
+  quitModal.addEventListener("click", (event) => {
+    if (event.target === quitModal) {
+      closeQuitModal();
+    }
+  });
+</script>
 </body>
 </html>
