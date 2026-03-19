@@ -195,39 +195,31 @@
 
   const msalConfig = {
     auth: {
-      clientId: "2b7e1ad7-9781-4395-99b5-2e33246c6692",
+        clientId: "2b7e1ad7-9781-4395-99b5-2e33246c6692",
       authority: "https://login.microsoftonline.com/5742a723-902a-4a88-ac5c-da38069007df",
-    redirectUri: "https://erlber.github.io/seb-exam/",
-    postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
-  },
-  cache: {
-    cacheLocation: "localStorage"
-  }
-};
+      redirectUri: "https://erlber.github.io/seb-exam/teacher.html",
+      postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
+    },
+    cache: {
+      cacheLocation: "localStorage"
+    }
+  };
 
   const msalInstance = new msal.PublicClientApplication(msalConfig);
 
   async function initAuth() {
     await msalInstance.initialize();
-
-    const response = await msalInstance.handleRedirectPromise();
-
-    if (response && response.account) {
-      msalInstance.setActiveAccount(response.account);
-      window.location.href = "teacher.html";
-      return;
-    }
-
-    const accounts = msalInstance.getAllAccounts();
-    if (accounts.length > 0) {
-      msalInstance.setActiveAccount(accounts[0]);
-    }
   }
 
   document.getElementById("teacherPortalBtn").addEventListener("click", async () => {
-    await msalInstance.loginRedirect({
-      scopes: ["openid", "profile", "email"]
-    });
+    try {
+      await msalInstance.loginRedirect({
+        scopes: ["openid", "profile", "email"],
+        redirectUri: "https://erlber.github.io/seb-exam/teacher.html"
+      });
+    } catch (error) {
+      console.error("Login-feil:", error);
+    }
   });
 
   initAuth();

@@ -52,13 +52,12 @@
 
   <button id="logout">Logg ut</button>
 </div>
-
 <script>
   const msalConfig = {
     auth: {
-      clientId: "2b7e1ad7-9781-4395-99b5-2e33246c6692",
+        clientId: "2b7e1ad7-9781-4395-99b5-2e33246c6692",
       authority: "https://login.microsoftonline.com/5742a723-902a-4a88-ac5c-da38069007df",
-      redirectUri: "https://erlber.github.io/seb-exam/",
+      redirectUri: "https://erlber.github.io/seb-exam/teacher.html",
       postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
     },
     cache: {
@@ -70,7 +69,12 @@
 
   async function initTeacherPage() {
     await msalInstance.initialize();
-    await msalInstance.handleRedirectPromise();
+
+    const response = await msalInstance.handleRedirectPromise();
+
+    if (response && response.account) {
+      msalInstance.setActiveAccount(response.account);
+    }
 
     const accounts = msalInstance.getAllAccounts();
 
@@ -79,7 +83,7 @@
       return;
     }
 
-    const account = accounts[0];
+    const account = msalInstance.getActiveAccount() || accounts[0];
     msalInstance.setActiveAccount(account);
 
     document.getElementById("user").textContent =
@@ -89,10 +93,17 @@
   document.getElementById("logout").addEventListener("click", async () => {
     const account = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
 
-    await msalInstance.logoutRedirect({
-      account,
-      postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
-    });
+    try {
+      await msalInstance.logoutRedirect({
+        account,
+        postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
+      });
+    } catch (error) {
+      console.error("Logout-feil:", error);
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "https://erlber.github.io/seb-exam/";
+    }
   });
 
   initTeacherPage();
