@@ -2,112 +2,331 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lærerportal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KVN Lærerportal</title>
+    <link rel="stylesheet" href="./styles/teacher.css">
+  <script src="./script/msal-browser.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-  <script src="./js/msal-browser.min.js"></script>
 
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 40px;
-      background: #f5f7fb;
-    }
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAxzsDULi8VYbjbcL9l6vUeu8xY7RjKSNU",
+      authDomain: "kvn-seb.firebaseapp.com",
+      projectId: "kvn-seb",
+      storageBucket: "kvn-seb.firebasestorage.app",
+      messagingSenderId: "563409195446",
+      appId: "1:563409195446:web:eff0cc54939fb9c2d4f117"
+    };
 
-    .card {
-      max-width: 500px;
-      margin: auto;
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    .password {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #1f2f63;
-      margin-top: 10px;
-    }
+    const isLocalDev =
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname === "localhost";
 
-    button {
-      margin-top: 20px;
-      padding: 10px 16px;
-      border-radius: 999px;
-      border: none;
-      background: #1f2f63;
-      color: white;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
+    const teacherRedirectUri = isLocalDev
+      ? "http://localhost:5501/teacher.html"
+      : "https://erlber.github.io/seb-exam/teacher.html";
 
-<div class="card">
-  <h2>Lærerportal</h2>
-  <p id="user"></p>
+    const indexRedirectUri = isLocalDev
+      ? "http://localhost:5501/index.html"
+      : "https://erlber.github.io/seb-exam/";
 
-  <p>Avslutningskode:</p>
-  <div class="password">quit</div>
-
-  <button id="logout">Logg ut</button>
-</div>
-<script>
-  const msalConfig = {
-    auth: {
+    const msalConfig = {
+      auth: {
         clientId: "2b7e1ad7-9781-4395-99b5-2e33246c6692",
       authority: "https://login.microsoftonline.com/5742a723-902a-4a88-ac5c-da38069007df",
-      redirectUri: "https://erlber.github.io/seb-exam/teacher.html",
-      postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
-    },
-    cache: {
-      cacheLocation: "localStorage"
+        redirectUri: teacherRedirectUri,
+        postLogoutRedirectUri: indexRedirectUri
+      },
+      cache: {
+        cacheLocation: "localStorage"
+      }
+    };
+
+    const msalInstance = new msal.PublicClientApplication(msalConfig);
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img
+        class="logo"
+        src="https://erlber.github.io/seb-exam/img/logo_black_KVN_outer.png"
+        alt="KVN logo"
+      />
+      <span class="brand-text">Kristen Videregående Skole Nordland</span>
+    </div>
+
+    <div class="topbar-actions">
+      <a href="index.html" class="button-link secondary">Tilbake</a>
+      <button id="logoutBtn">Logg ut</button>
+    </div>
+  </header>
+
+  <main class="wrapper">
+    <section class="hero">
+      <div class="hero-badge">Lærerportal</div>
+      <h1>Oversikt over elever</h1>
+      <p>
+        Denne siden viser elever som har åpnet elevportalen. Listen oppdateres live.
+      </p>
+    </section>
+
+    <section class="grid">
+      <aside class="card">
+        <h2>Lærerinfo</h2>
+
+        <div class="meta-block">
+          <div class="label">Innlogget som</div>
+          <div class="value" id="userName">Laster...</div>
+        </div>
+
+        <div class="meta-block">
+          <div class="label">Brukernavn</div>
+          <div class="value" id="userUsername">Laster...</div>
+        </div>
+
+        <div class="meta-block">
+          <div class="label">Avslutningskode</div>
+          <div class="quit-code" id="quitCode">quit</div>
+        </div>
+
+        <div class="small-note">
+          Dette er første versjon av lærerportalen. Neste steg kan være å filtrere per config,
+          vise bare siste registrering per elev og stramme inn tilgang til kun ansatte.
+        </div>
+      </aside>
+
+      <section class="card">
+        <div class="summary">
+          <div>
+            <h2 style="margin-bottom: 6px;">Elever som har åpnet elevportalen</h2>
+            <div class="status" id="statusText">Kobler til Firestore...</div>
+          </div>
+
+          <div class="summary-badge">
+            <span>Antall registreringer:</span>
+            <span id="entryCount">0</span>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Navn</th>
+                <th>Brukernavn</th>
+                <th>Tidspunkt</th>
+                <th>Config</th>
+              </tr>
+            </thead>
+            <tbody id="studentTableBody">
+              <tr>
+                <td colspan="4" class="empty-state">Laster data...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+<script>
+  const userNameEl = document.getElementById("userName");
+  const userUsernameEl = document.getElementById("userUsername");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const statusText = document.getElementById("statusText");
+  const entryCount = document.getElementById("entryCount");
+  const studentTableBody = document.getElementById("studentTableBody");
+  const quitCode = document.getElementById("quitCode");
+
+  const KVN_ANSATTE_GROUP_ID = "5727f4fd-8363-4e85-a509-5372dbb7eaa6";
+
+  function formatDateTime(dateString) {
+    if (!dateString) return "-";
+
+    const date = new Date(dateString);
+
+    if (Number.isNaN(date.getTime())) {
+      return dateString;
     }
-  };
 
-  const msalInstance = new msal.PublicClientApplication(msalConfig);
+    return date.toLocaleString("no-NO", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+  }
 
-  async function initTeacherPage() {
-    await msalInstance.initialize();
+  function renderRows(docs) {
+    entryCount.textContent = docs.length.toString();
 
-    const response = await msalInstance.handleRedirectPromise();
-
-    if (response && response.account) {
-      msalInstance.setActiveAccount(response.account);
-    }
-
-    const accounts = msalInstance.getAllAccounts();
-
-    if (!accounts.length) {
-      window.location.href = "index.html";
+    if (!docs.length) {
+      studentTableBody.innerHTML = `
+        <tr>
+          <td colspan="4" class="empty-state">Ingen elever er registrert ennå.</td>
+        </tr>
+      `;
       return;
     }
 
-    const account = msalInstance.getActiveAccount() || accounts[0];
-    msalInstance.setActiveAccount(account);
+    studentTableBody.innerHTML = docs.map((doc) => {
+      const data = doc.data();
 
-    document.getElementById("user").textContent =
-      account.name || account.username || "Ukjent bruker";
+      return `
+        <tr>
+          <td>${data.name || "-"}</td>
+          <td>${data.username || "-"}</td>
+          <td>${formatDateTime(data.openedAt)}</td>
+          <td>${data.config || "-"}</td>
+        </tr>
+      `;
+    }).join("");
   }
 
-  document.getElementById("logout").addEventListener("click", async () => {
-    const account = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
+  function userIsEmployee(account) {
+    const claims = account.idTokenClaims || {};
+    const groups = claims.groups || [];
+
+    console.log("Claims:", claims);
+    console.log("Groups:", groups);
+    console.log("KVN_ANSATTE_GROUP_ID:", KVN_ANSATTE_GROUP_ID);
+    console.log("Er ansatt?:", Array.isArray(groups) && groups.includes(KVN_ANSATTE_GROUP_ID));
+
+    return Array.isArray(groups) && groups.includes(KVN_ANSATTE_GROUP_ID);
+  }
+
+  async function denyAccess() {
+    alert("Du har ikke tilgang til lærerportalen.");
+
+    try {
+      await msalInstance.logoutRedirect({
+        account: msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0],
+        postLogoutRedirectUri: indexRedirectUri
+      });
+    } catch (error) {
+      console.error("Logout-feil ved denyAccess:", error);
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = indexRedirectUri;
+    }
+  }
+
+  async function loadQuitCode() {
+    try {
+      const doc = await db.collection("settings").doc("quitPassword").get();
+
+      if (!doc.exists) {
+        quitCode.textContent = "Ikke satt";
+        return;
+      }
+
+      const data = doc.data();
+      quitCode.textContent = data.value || "Ikke satt";
+    } catch (error) {
+      console.error("Feil ved lasting av avslutningskode:", error);
+      quitCode.textContent = "Feil";
+    }
+  }
+
+  async function initTeacherPage() {
+    try {
+      statusText.textContent = "Initialiserer MSAL...";
+      await msalInstance.initialize();
+
+      statusText.textContent = "Behandler redirect...";
+      const response = await msalInstance.handleRedirectPromise();
+      console.log("handleRedirectPromise response:", response);
+
+      if (response && response.account) {
+        msalInstance.setActiveAccount(response.account);
+        console.log("Account fra redirect:", response.account);
+      }
+
+      let account = msalInstance.getActiveAccount();
+      const accounts = msalInstance.getAllAccounts();
+      console.log("Accounts i cache:", accounts);
+
+      if (!account && accounts.length > 0) {
+        account = accounts[0];
+        msalInstance.setActiveAccount(account);
+      }
+
+      if (!account) {
+        statusText.textContent = "Ingen konto funnet. Starter innlogging...";
+        await msalInstance.loginRedirect({
+          scopes: ["openid", "profile", "email"]
+        });
+        return;
+      }
+
+      console.log("Valgt account:", account);
+
+      userNameEl.textContent = account.name || "Ukjent bruker";
+      userUsernameEl.textContent = account.username || "-";
+
+      if (!userIsEmployee(account)) {
+        await denyAccess();
+        return;
+      }
+
+      await loadQuitCode();
+
+      statusText.textContent = "Lytter etter elevregistreringer...";
+
+      db.collection("studentOpens")
+        .orderBy("openedAt", "desc")
+        .onSnapshot(
+          (snapshot) => {
+            statusText.textContent = "Live-oppdatering aktiv";
+            renderRows(snapshot.docs);
+          },
+          (error) => {
+            console.error("Feil ved henting fra Firestore:", error);
+            statusText.textContent = "Kunne ikke hente data fra Firestore";
+            studentTableBody.innerHTML = `
+              <tr>
+                <td colspan="4" class="empty-state">Feil ved henting av data.</td>
+              </tr>
+            `;
+          }
+        );
+    } catch (error) {
+      console.error("Feil i initTeacherPage:", error);
+      statusText.textContent = "Feil under innlasting av lærerportal";
+      studentTableBody.innerHTML = `
+        <tr>
+          <td colspan="4" class="empty-state">Se console for detaljer.</td>
+        </tr>
+      `;
+    }
+  }
+
+  logoutBtn.addEventListener("click", async () => {
+    const account =
+      msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
 
     try {
       await msalInstance.logoutRedirect({
         account,
-        postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
+        postLogoutRedirectUri: indexRedirectUri
       });
     } catch (error) {
       console.error("Logout-feil:", error);
       localStorage.clear();
       sessionStorage.clear();
-      window.location.href = "https://erlber.github.io/seb-exam/";
+      window.location.href = indexRedirectUri;
     }
   });
 
   initTeacherPage();
 </script>
-
 </body>
 </html>

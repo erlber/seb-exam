@@ -2,16 +2,20 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KVN nettressurser</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KVN SEB Portal</title>
+
+  <link rel="stylesheet" href="./styles/index.css" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
-  <script src="./js/msal-browser.min.js"></script>
+
+  <script src="./script/msal-browser.min.js"></script>
 </head>
 <body>
-  <div class="page-bg"></div>
+
+<div class="page-bg"></div>
 
 <header class="topbar">
   <div class="brand">
@@ -22,183 +26,56 @@
     />
     <span class="brand-text">Kristen Videregående Skole Nordland</span>
   </div>
-
-    <div class="header-actions">
-    <button class="portal-btn" id="teacherPortalBtn">Lærerportal</button>
-    <button class="quit-btn" id="openQuitModal">Avslutt SEB</button>
-    </div>
 </header>
 
-  <main class="wrapper">
-    <section class="hero">
-      <div class="hero-badge">Safe Exam Browser</div>
-      <h1>Nettressurser</h1>
-      <p>Velg ressursen du trenger for å komme raskt i gang.</p>
+<main class="wrapper">
+  <section class="hero">
+    <div class="hero-badge">Safe Exam Browser</div>
+    <h1>Velg portal</h1>
+    <p>Velg riktig inngang for å starte.</p>
+  </section>
 
-      <div class="search-wrapper">
-        <input
-          type="text"
-          id="resourceSearch"
-          class="search-input"
-          placeholder="Søk etter nettressurs..."
-          aria-label="Søk etter nettressurs"
-        />
-      </div>
-    </section>
+  <section class="portal-grid">
+    <button class="portal-card student" id="studentBtn">
+      <span class="portal-title">Elevportal</span>
+      <span class="portal-subtitle">Start eksamen og åpne nettressurser</span>
+    </button>
 
-    <section class="resource-grid" id="resourceGrid">
-      <a class="resource-card" href="https://itslearning.com/" target="_blank" rel="noopener noreferrer" data-name="it's learning læringsplattform itslearning">
-        <span class="resource-title">It's Learning</span>
-        <span class="resource-subtitle">Læringsplattform</span>
-      </a>
+    <button class="portal-card teacher" id="teacherBtn">
+      <span class="portal-title">Lærerportal</span>
+      <span class="portal-subtitle">Se avslutningskode og administrasjon</span>
+    </button>
 
-      <a class="resource-card" href="https://www.geogebra.org/classic" target="_blank" rel="noopener noreferrer" data-name="geogebra matematikk">
-        <span class="resource-title">GeoGebra</span>
-        <span class="resource-subtitle">Matematikkverktøy</span>
-      </a>
-
-      <a class="resource-card" href="https://app.clarify.no/auth" target="_blank" rel="noopener noreferrer" data-name="clarify innlogging">
-        <span class="resource-title">Clarify</span>
-        <span class="resource-subtitle">Innlogging</span>
-      </a>
-
-      <a class="resource-card" href="https://www.pendel.no/" target="_blank" rel="noopener noreferrer" data-name="pendel norsk">
-        <span class="resource-title">Pendel</span>
-        <span class="resource-subtitle">Norskressurs</span>
-      </a>
-
-      <a class="resource-card" href="https://cosinus.cappelendamm.no/" target="_blank" rel="noopener noreferrer" data-name="cosinus matematikk">
-        <span class="resource-title">Cosinus</span>
-        <span class="resource-subtitle">Matematikk</span>
-      </a>
-
-      <a class="resource-card" href="https://ndla.no/" target="_blank" rel="noopener noreferrer" data-name="ndla fagressurser">
-        <span class="resource-title">NDLA</span>
-        <span class="resource-subtitle">Fagressurser</span>
-      </a>
-
-      <a class="resource-card" href="https://snl.no/" target="_blank" rel="noopener noreferrer" data-name="snl store norske leksikon">
-        <span class="resource-title">SNL</span>
-        <span class="resource-subtitle">Store norske leksikon</span>
-      </a>
-
-      <a class="resource-card" href="https://lexin.oslomet.no/#/" target="_blank" rel="noopener noreferrer" data-name="lexin ordbok språkstøtte">
-        <span class="resource-title">Lexin</span>
-        <span class="resource-subtitle">Ordbok og språkstøtte</span>
-      </a>
-    </section>
-
-    <p id="noResults" class="no-results" hidden>
-      Ingen nettressurser matcher søket ditt.
-    </p>
-  </main>
-
-  <div class="modal-overlay" id="quitModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>Avslutt SEB</h2>
-      <button class="modal-close" id="closeQuitModal" aria-label="Lukk">×</button>
-    </div>
-
-    <p class="modal-text">
-      Skriv inn kode for å avslutte Safe Exam Browser.
-    </p>
-
-    <input
-      type="password"
-      id="quitPasswordInput"
-      class="modal-input"
-      placeholder="Skriv inn kode"
-    />
-
-    <p class="modal-error" id="quitError" hidden>Feil kode</p>
-
-    <div class="modal-actions">
-      <button class="modal-cancel" id="cancelQuit">Avbryt</button>
-      <button class="modal-confirm" id="confirmQuit">Avslutt SEB</button>
-    </div>
-  </div>
-</div>
+     <button class="portal-card quit" id="quitBtn">
+        <span class="portal-title">Avslutt SEB</span>
+        <span class="portal-subtitle">Lukk Safe Exam Browser</span>
+    </button>
+  </section>
+</main>
 
 <script>
-  const searchInput = document.getElementById("resourceSearch");
-  const resourceCards = document.querySelectorAll(".resource-card");
-  const noResults = document.getElementById("noResults");
+  const isLocalDev =
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname === "localhost";
 
-  searchInput.addEventListener("input", () => {
-    const query = searchInput.value.toLowerCase().trim();
-    let visibleCount = 0;
+  const teacherRedirectUri = isLocalDev
+    ? "http://localhost:5501/teacher.html"
+    : "https://erlber.github.io/seb-exam/teacher.html";
 
-    resourceCards.forEach((card) => {
-      const searchableText = card.dataset.name.toLowerCase();
+  const studentRedirectUri = isLocalDev
+    ? "http://localhost:5501/student.html"
+    : "https://erlber.github.io/seb-exam/student.html";
 
-      if (searchableText.includes(query)) {
-        card.style.display = "flex";
-        visibleCount++;
-      } else {
-        card.style.display = "none";
-      }
-    });
-
-    noResults.hidden = visibleCount !== 0;
-  });
-
-  const openQuitModalBtn = document.getElementById("openQuitModal");
-  const closeQuitModalBtn = document.getElementById("closeQuitModal");
-  const cancelQuitBtn = document.getElementById("cancelQuit");
-  const confirmQuitBtn = document.getElementById("confirmQuit");
-  const quitModal = document.getElementById("quitModal");
-  const quitPasswordInput = document.getElementById("quitPasswordInput");
-  const quitError = document.getElementById("quitError");
-
-  const quitPassword = "quit";
-  const quitUrl = "https://kvn.no/seb/quit";
-
-  function openQuitModal() {
-    quitModal.classList.add("active");
-    quitPasswordInput.value = "";
-    quitError.hidden = true;
-    setTimeout(() => quitPasswordInput.focus(), 50);
-  }
-
-  function closeQuitModal() {
-    quitModal.classList.remove("active");
-    quitPasswordInput.value = "";
-    quitError.hidden = true;
-  }
-
-  function handleQuit() {
-    const inputValue = quitPasswordInput.value.trim();
-
-    if (inputValue === quitPassword) {
-      window.location.href = quitUrl;
-    } else {
-      quitError.hidden = false;
-      quitPasswordInput.focus();
-      quitPasswordInput.select();
-    }
-  }
-
-  openQuitModalBtn.addEventListener("click", openQuitModal);
-  closeQuitModalBtn.addEventListener("click", closeQuitModal);
-  cancelQuitBtn.addEventListener("click", closeQuitModal);
-  confirmQuitBtn.addEventListener("click", handleQuit);
-
-  quitPasswordInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") handleQuit();
-    if (event.key === "Escape") closeQuitModal();
-  });
-
-  quitModal.addEventListener("click", (event) => {
-    if (event.target === quitModal) closeQuitModal();
-  });
+  const indexRedirectUri = isLocalDev
+    ? "http://localhost:5501/index.html"
+    : "https://erlber.github.io/seb-exam/";
 
   const msalConfig = {
     auth: {
-        clientId: "2b7e1ad7-9781-4395-99b5-2e33246c6692",
+      clientId: "2b7e1ad7-9781-4395-99b5-2e33246c6692",
       authority: "https://login.microsoftonline.com/5742a723-902a-4a88-ac5c-da38069007df",
-      redirectUri: "https://erlber.github.io/seb-exam/teacher.html",
-      postLogoutRedirectUri: "https://erlber.github.io/seb-exam/"
+      redirectUri: teacherRedirectUri,
+      postLogoutRedirectUri: indexRedirectUri
     },
     cache: {
       cacheLocation: "localStorage"
@@ -207,22 +84,26 @@
 
   const msalInstance = new msal.PublicClientApplication(msalConfig);
 
-  async function initAuth() {
-    await msalInstance.initialize();
-  }
-
-  document.getElementById("teacherPortalBtn").addEventListener("click", async () => {
-    try {
-      await msalInstance.loginRedirect({
-        scopes: ["openid", "profile", "email"],
-        redirectUri: "https://erlber.github.io/seb-exam/teacher.html"
-      });
-    } catch (error) {
-      console.error("Login-feil:", error);
-    }
+  document.getElementById("studentBtn").addEventListener("click", () => {
+    window.location.href = studentRedirectUri;
   });
 
-  initAuth();
+document.getElementById("teacherBtn").addEventListener("click", async () => {
+  try {
+await msalInstance.loginRedirect({
+  scopes: ["openid", "profile", "email"]
+});
+  } catch (error) {
+    console.error("Login-feil:", error);
+  }
+});
+
+const quitUrl = "https://kvn.no/seb/quit";
+
+document.getElementById("quitBtn").addEventListener("click", () => {
+  window.location.href = quitUrl;
+});
 </script>
+
 </body>
 </html>

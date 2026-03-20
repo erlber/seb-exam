@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KVN Elevportal</title>
+
+  <link rel="stylesheet" href="./styles/student.css" />
+  <script src="./script/msal-browser.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAxzsDULi8VYbjbcL9l6vUeu8xY7RjKSNU",
+      authDomain: "kvn-seb.firebaseapp.com",
+      projectId: "kvn-seb",
+      storageBucket: "kvn-seb.firebasestorage.app",
+      messagingSenderId: "563409195446",
+      appId: "1:563409195446:web:eff0cc54939fb9c2d4f117"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const isLocalDev =
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname === "localhost";
+
+    const studentRedirectUri = isLocalDev
+      ? "http://localhost:5501/student.html"
+      : "https://erlber.github.io/seb-exam/student.html";
+
+    const indexRedirectUri = isLocalDev
+      ? "http://localhost:5501/index.html"
+      : "https://erlber.github.io/seb-exam/";
+
+    const msalConfig = {
+      auth: {
+        clientId: "2b7e1ad7-9781-4395-99b5-2e33246c6692",
+        authority: "https://login.microsoftonline.com/5742a723-902a-4a88-ac5c-da38069007df",
+        redirectUri: studentRedirectUri,
+        postLogoutRedirectUri: indexRedirectUri
+      },
+      cache: {
+        cacheLocation: "localStorage"
+      }
+    };
+
+    const msalInstance = new msal.PublicClientApplication(msalConfig);
+  </script>
+</head>
+<body>
+  <div class="page-bg"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <img
+        class="logo"
+        src="https://erlber.github.io/seb-exam/img/logo_black_KVN_outer.png"
+        alt="KVN logo"
+      />
+      <span class="brand-text">Kristen Videregående Skole Nordland</span>
+    </div>
+
+    <div class="header-actions">
+      <span class="student-user" id="userValue">Logger inn...</span>
+      <button class="quit-btn" id="openQuitModal">Avslutt SEB</button>
+    </div>
+  </header>
+
+  <main class="wrapper">
+    <section class="hero">
+      <div class="hero-badge">Elevportal</div>
+      <h1>Nettressurser</h1>
+      <p>Velg ressursen du trenger for å komme raskt i gang.</p>
+
+      <div class="search-wrapper">
+        <input
+          type="text"
+          id="resourceSearch"
+          class="search-input"
+          placeholder="Søk etter nettressurs..."
+          aria-label="Søk etter nettressurs"
+        />
+      </div>
+    </section>
+
+    <section class="resource-grid" id="resourceGrid">
+      <a class="resource-card" href="https://itslearning.com/" target="_blank" rel="noopener noreferrer" data-name="it's learning læringsplattform itslearning">
+        <span class="resource-title">It's Learning</span>
+        <span class="resource-subtitle">Læringsplattform</span>
+      </a>
+
+      <a class="resource-card" href="https://www.geogebra.org/classic" target="_blank" rel="noopener noreferrer" data-name="geogebra matematikk">
+        <span class="resource-title">GeoGebra</span>
+        <span class="resource-subtitle">Matematikkverktøy</span>
+      </a>
+
+      <a class="resource-card" href="https://app.clarify.no/auth" target="_blank" rel="noopener noreferrer" data-name="clarify innlogging">
+        <span class="resource-title">Clarify</span>
+        <span class="resource-subtitle">Innlogging</span>
+      </a>
+
+      <a class="resource-card" href="https://www.pendel.no/" target="_blank" rel="noopener noreferrer" data-name="pendel norsk">
+        <span class="resource-title">Pendel</span>
+        <span class="resource-subtitle">Norskressurs</span>
+      </a>
+
+      <a class="resource-card" href="https://cosinus.cappelendamm.no/" target="_blank" rel="noopener noreferrer" data-name="cosinus matematikk">
+        <span class="resource-title">Cosinus</span>
+        <span class="resource-subtitle">Matematikk</span>
+      </a>
+
+      <a class="resource-card" href="https://ndla.no/" target="_blank" rel="noopener noreferrer" data-name="ndla fagressurser">
+        <span class="resource-title">NDLA</span>
+        <span class="resource-subtitle">Fagressurser</span>
+      </a>
+
+      <a class="resource-card" href="https://snl.no/" target="_blank" rel="noopener noreferrer" data-name="snl store norske leksikon">
+        <span class="resource-title">SNL</span>
+        <span class="resource-subtitle">Store norske leksikon</span>
+      </a>
+
+      <a class="resource-card" href="https://lexin.oslomet.no/#/" target="_blank" rel="noopener noreferrer" data-name="lexin ordbok språkstøtte">
+        <span class="resource-title">Lexin</span>
+        <span class="resource-subtitle">Ordbok og språkstøtte</span>
+      </a>
+    </section>
+
+    <p id="noResults" class="no-results" hidden>
+      Ingen nettressurser matcher søket ditt.
+    </p>
+
+    <section class="debug-panel" id="debugPanel" hidden>
+      <div class="card">
+        <h2>Debug</h2>
+
+        <div class="status-grid">
+          <div class="status-item">
+            <div class="label">Debug-modus</div>
+            <div class="value" id="debugModeValue">Laster...</div>
+          </div>
+
+          <div class="status-item">
+            <div class="label">Config fra URL</div>
+            <div class="value" id="configValue">Laster...</div>
+          </div>
+
+          <div class="status-item">
+            <div class="label">Innlogget bruker</div>
+            <div class="value" id="debugUserValue">Ikke funnet</div>
+          </div>
+
+          <div class="status-item">
+            <div class="label">MSAL redirect URI</div>
+            <div class="value" id="redirectUriValue">Laster...</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="loginBtn">Logg inn elev</button>
+          <button id="logBtn" class="secondary">Logg elev til Firestore</button>
+          <button id="testFirestoreBtn" class="secondary">Test Firestore</button>
+          <a href="index.html" class="button-link secondary">Tilbake</a>
+        </div>
+
+        <div id="debugOutput" class="debug-box"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-overlay" id="quitModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Avslutt SEB</h2>
+        <button class="modal-close" id="closeQuitModal" aria-label="Lukk">×</button>
+      </div>
+
+      <p class="modal-text">
+        Skriv inn kode for å avslutte Safe Exam Browser.
+      </p>
+
+      <input
+        type="password"
+        id="quitPasswordInput"
+        class="modal-input"
+        placeholder="Skriv inn kode"
+      />
+
+      <p class="modal-error" id="quitError" hidden>Feil kode</p>
+
+      <div class="modal-actions">
+        <button class="modal-cancel" id="cancelQuit">Avbryt</button>
+        <button class="modal-confirm" id="confirmQuit">Avslutt SEB</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const searchInput = document.getElementById("resourceSearch");
+  const resourceCards = document.querySelectorAll(".resource-card");
+  const noResults = document.getElementById("noResults");
+
+  const userValue = document.getElementById("userValue");
+
+  const openQuitModalBtn = document.getElementById("openQuitModal");
+  const closeQuitModalBtn = document.getElementById("closeQuitModal");
+  const cancelQuitBtn = document.getElementById("cancelQuit");
+  const confirmQuitBtn = document.getElementById("confirmQuit");
+  const quitModal = document.getElementById("quitModal");
+  const quitPasswordInput = document.getElementById("quitPasswordInput");
+  const quitError = document.getElementById("quitError");
+
+  let currentAccount = null;
+  let heartbeatInterval = null;
+  let quitPassword = "";
+
+  const quitUrl = "https://kvn.no/seb/quit";
+  const HEARTBEAT_MS = 15000;
+
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase().trim();
+    let visibleCount = 0;
+
+    resourceCards.forEach((card) => {
+      const text = (card.dataset.name || "").toLowerCase();
+
+      if (text.includes(query)) {
+        card.style.display = "flex";
+        visibleCount++;
+      } else {
+        card.style.display = "none";
+      }
+    });
+
+    noResults.hidden = visibleCount !== 0;
+  });
+
+  function getConfigFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("config") || "default";
+  }
+
+  function getDocId(account) {
+    return (account?.username || "").toLowerCase();
+  }
+
+  function updateUi() {
+    const displayName = currentAccount
+      ? (currentAccount.name || currentAccount.username || "Innlogget")
+      : "Logger inn...";
+
+    userValue.textContent = displayName;
+  }
+
+  function openQuitModal() {
+    quitModal.classList.add("active");
+    quitPasswordInput.value = "";
+    quitError.hidden = true;
+    setTimeout(() => quitPasswordInput.focus(), 50);
+  }
+
+  function closeQuitModal() {
+    quitModal.classList.remove("active");
+    quitPasswordInput.value = "";
+    quitError.hidden = true;
+  }
+
+  async function loadQuitPassword() {
+    try {
+      const doc = await db.collection("settings").doc("quitPassword").get();
+
+      if (doc.exists) {
+        quitPassword = doc.data().value || "";
+      }
+    } catch (err) {
+      console.error("Feil ved lasting av avslutningskode:", err);
+    }
+  }
+
+  async function upsertStudent(account) {
+    const docId = getDocId(account);
+    if (!docId) return;
+
+    const now = new Date().toISOString();
+
+    const payload = {
+      name: account.name || "",
+      username: account.username || "",
+      config: getConfigFromUrl(),
+      lastSeen: now
+    };
+
+    const ref = db.collection("studentOpens").doc(docId);
+    const snap = await ref.get();
+
+    if (!snap.exists) {
+      payload.openedAt = now;
+    }
+
+    await ref.set(payload, { merge: true });
+  }
+
+  async function removeStudent(account) {
+    const docId = getDocId(account);
+    if (!docId) return;
+
+    try {
+      await db.collection("studentOpens").doc(docId).delete();
+    } catch (err) {
+      console.error("Feil ved sletting:", err);
+    }
+  }
+
+  function startHeartbeat() {
+    stopHeartbeat();
+
+    if (!currentAccount) return;
+
+    heartbeatInterval = setInterval(async () => {
+      const docId = getDocId(currentAccount);
+      if (!docId) return;
+
+      try {
+        await db.collection("studentOpens").doc(docId).set(
+          {
+            lastSeen: new Date().toISOString()
+          },
+          { merge: true }
+        );
+      } catch (err) {
+        console.error("Heartbeat-feil:", err);
+      }
+    }, HEARTBEAT_MS);
+  }
+
+  function stopHeartbeat() {
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+      heartbeatInterval = null;
+    }
+  }
+
+  async function handleQuit() {
+    const inputValue = quitPasswordInput.value.trim();
+
+    if (inputValue !== quitPassword) {
+      quitError.hidden = false;
+      quitPasswordInput.focus();
+      quitPasswordInput.select();
+      return;
+    }
+
+    confirmQuitBtn.disabled = true;
+    confirmQuitBtn.textContent = "Avslutter...";
+
+    try {
+      stopHeartbeat();
+
+      if (currentAccount) {
+        await removeStudent(currentAccount);
+      }
+    } catch (err) {
+      console.error("Feil ved avslutning:", err);
+    } finally {
+      window.location.href = quitUrl;
+    }
+  }
+
+  async function loginStudent() {
+    await msalInstance.loginRedirect({
+      scopes: ["openid", "profile", "email"]
+    });
+  }
+
+  async function initLoggedIn(account) {
+    currentAccount = account;
+    msalInstance.setActiveAccount(account);
+    updateUi();
+
+    await upsertStudent(account);
+    startHeartbeat();
+  }
+
+  async function initStudentPage() {
+    updateUi();
+
+    await loadQuitPassword();
+    await msalInstance.initialize();
+
+    const response = await msalInstance.handleRedirectPromise();
+
+    if (response && response.account) {
+      await initLoggedIn(response.account);
+      return;
+    }
+
+    const accounts = msalInstance.getAllAccounts();
+
+    if (accounts.length > 0) {
+      await initLoggedIn(accounts[0]);
+      return;
+    }
+
+    await loginStudent();
+  }
+
+  openQuitModalBtn.addEventListener("click", openQuitModal);
+  closeQuitModalBtn.addEventListener("click", closeQuitModal);
+  cancelQuitBtn.addEventListener("click", closeQuitModal);
+  confirmQuitBtn.addEventListener("click", handleQuit);
+
+  quitPasswordInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") handleQuit();
+    if (e.key === "Escape") closeQuitModal();
+  });
+
+  quitModal.addEventListener("click", (e) => {
+    if (e.target === quitModal) closeQuitModal();
+  });
+
+  window.addEventListener("beforeunload", () => {
+    stopHeartbeat();
+  });
+
+  initStudentPage();
+</script>
+</body>
+</html>
