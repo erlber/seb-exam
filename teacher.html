@@ -117,12 +117,13 @@
         <div class="table-wrap">
           <table>
             <thead>
-              <tr>
+                <tr>
                 <th>Navn</th>
                 <th>Brukernavn</th>
                 <th>Tidspunkt</th>
                 <th>Config</th>
-              </tr>
+                <th>Tillat avslutning</th>
+                </tr>
             </thead>
             <tbody id="studentTableBody">
               <tr>
@@ -136,6 +137,8 @@
   </main>
 
 <script>
+
+let currentTeacherAccount = null;
   const userNameEl = document.getElementById("userName");
   const userUsernameEl = document.getElementById("userUsername");
   const logoutBtn = document.getElementById("logoutBtn");
@@ -165,31 +168,69 @@
     });
   }
 
-  function renderRows(docs) {
-    entryCount.textContent = docs.length.toString();
-
-    if (!docs.length) {
-      studentTableBody.innerHTML = `
-        <tr>
-          <td colspan="4" class="empty-state">Ingen elever er registrert ennå.</td>
-        </tr>
-      `;
-      return;
-    }
-
-    studentTableBody.innerHTML = docs.map((doc) => {
-      const data = doc.data();
-
-      return `
-        <tr>
-          <td>${data.name || "-"}</td>
-          <td>${data.username || "-"}</td>
-          <td>${formatDateTime(data.openedAt)}</td>
-          <td>${data.config || "-"}</td>
-        </tr>
-      `;
-    }).join("");
+  async function toggleCanQuit(username, value, teacherAccount) {
+  try {
+    await db.collection("studentOpens").doc(username.toLowerCase()).set(
+      {
+        canQuit: value,
+        canQuitSetAt: new Date().toISOString(),
+        canQuitSetBy: teacherAccount?.username || ""
+      },
+      { merge: true }
+    );
+  } catch (error) {
+    console.error("Feil ved oppdatering av canQuit:", error);
+    alert("Kunne ikke oppdatere avslutningstillatelse.");
   }
+}
+
+function renderRows(docs) {
+  entryCount.textContent = docs.length.toString();
+
+  if (!docs.length) {
+    studentTableBody.innerHTML = `
+      <tr>
+        <td colspan="5" class="empty-state">Ingen elever er registrert ennå.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  studentTableBody.innerHTML = docs.map((doc) => {
+    const data = doc.data();
+    const username = (data.username || "").toLowerCase();
+    const checked = data.canQuit === true ? "checked" : "";
+
+    return `
+      <tr>
+        <td>${data.name || "-"}</td>
+        <td>${data.username || "-"}</td>
+        <td>${formatDateTime(data.openedAt)}</td>
+        <td>${data.config || "-"}</td>
+        <td>
+          <label style="display:flex; align-items:center; gap:8px;">
+            <input
+              type="checkbox"
+              class="can-quit-checkbox"
+              data-username="${username}"
+              ${checked}
+            />
+            <span>${data.canQuit === true ? "Tillatt" : "Ikke tillatt"}</span>
+          </label>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  document.querySelectorAll(".can-quit-checkbox").forEach((checkbox) => {
+    checkbox.addEventListener("change", async (event) => {
+      const username = event.target.dataset.username;
+      const value = event.target.checked;
+
+      await toggleCanQuit(username, value, currentTeacherAccount);
+    });
+  });
+}
 
   function userIsEmployee(account) {
     const claims = account.idTokenClaims || {};
@@ -267,6 +308,7 @@
         return;
       }
 
+      currentTeacherAccount = account;
       console.log("Valgt account:", account);
 
       userNameEl.textContent = account.name || "Ukjent bruker";

@@ -243,7 +243,7 @@
   }
 
   function getDocId(account) {
-    return (account?.username || "").toLowerCase();
+    return (account?.username || "").trim().toLowerCase();
   }
 
   function updateUi() {
@@ -258,6 +258,8 @@
     quitModal.classList.add("active");
     quitPasswordInput.value = "";
     quitError.hidden = true;
+    confirmQuitBtn.disabled = false;
+    confirmQuitBtn.textContent = "Avslutt SEB";
     setTimeout(() => quitPasswordInput.focus(), 50);
   }
 
@@ -265,6 +267,8 @@
     quitModal.classList.remove("active");
     quitPasswordInput.value = "";
     quitError.hidden = true;
+    confirmQuitBtn.disabled = false;
+    confirmQuitBtn.textContent = "Avslutt SEB";
   }
 
   async function loadQuitPassword() {
@@ -273,9 +277,12 @@
 
       if (doc.exists) {
         quitPassword = doc.data().value || "";
+      } else {
+        quitPassword = "";
       }
     } catch (err) {
       console.error("Feil ved lasting av avslutningskode:", err);
+      quitPassword = "";
     }
   }
 
@@ -297,6 +304,7 @@
 
     if (!snap.exists) {
       payload.openedAt = now;
+      payload.canQuit = false;
     }
 
     await ref.set(payload, { merge: true });
@@ -342,7 +350,35 @@
     }
   }
 
+  async function quitDirectly() {
+    stopHeartbeat();
+
+    if (currentAccount) {
+      await removeStudent(currentAccount);
+    }
+
+    window.location.href = quitUrl;
+  }
+
   async function handleQuit() {
+    try {
+      if (currentAccount) {
+        const docId = getDocId(currentAccount);
+        const snap = await db.collection("studentOpens").doc(docId).get();
+
+        if (snap.exists) {
+          const data = snap.data();
+
+          if (data?.canQuit === true) {
+            await quitDirectly();
+            return;
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Feil ved sjekk av canQuit:", err);
+    }
+
     const inputValue = quitPasswordInput.value.trim();
 
     if (inputValue !== quitPassword) {
@@ -356,15 +392,11 @@
     confirmQuitBtn.textContent = "Avslutter...";
 
     try {
-      stopHeartbeat();
-
-      if (currentAccount) {
-        await removeStudent(currentAccount);
-      }
+      await quitDirectly();
     } catch (err) {
       console.error("Feil ved avslutning:", err);
-    } finally {
-      window.location.href = quitUrl;
+      confirmQuitBtn.disabled = false;
+      confirmQuitBtn.textContent = "Avslutt SEB";
     }
   }
 
@@ -406,7 +438,30 @@
     await loginStudent();
   }
 
-  openQuitModalBtn.addEventListener("click", openQuitModal);
+  openQuitModalBtn.addEventListener("click", async () => {
+    if (!currentAccount) {
+      openQuitModal();
+      return;
+    }
+
+    try {
+      const docId = getDocId(currentAccount);
+      const snap = await db.collection("studentOpens").doc(docId).get();
+
+      console.log("Studentdoc:", snap.exists ? snap.data() : "ingen doc");
+
+      if (snap.exists && snap.data()?.canQuit === true) {
+        await quitDirectly();
+        return;
+      }
+
+      openQuitModal();
+    } catch (err) {
+      console.error("Feil ved sjekk før avslutning:", err);
+      openQuitModal();
+    }
+  });
+
   closeQuitModalBtn.addEventListener("click", closeQuitModal);
   cancelQuitBtn.addEventListener("click", closeQuitModal);
   confirmQuitBtn.addEventListener("click", handleQuit);
