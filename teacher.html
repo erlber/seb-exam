@@ -541,7 +541,7 @@
         statusText.textContent = "Lytter etter elevregistreringer...";
 
         db.collection("studentOpens")
-          .orderBy("openedAt", "desc")
+        .orderBy("lastSeen", "desc")
           .onSnapshot(
             (snapshot) => {
               statusText.textContent = "Live-oppdatering aktiv";
