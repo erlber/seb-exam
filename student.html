@@ -219,6 +219,20 @@
   const quitUrl = "https://kvn.no/seb/quit";
   const HEARTBEAT_MS = 15000;
 
+
+  const STUDENT_GROUPS = {
+  "67846f03-fcb7-416f-a521-df6f3619598e": "kvn_im1a",
+  "71cfd1bc-4057-432e-88a4-83cf1552163d": "kvn_im2a",
+  "6aa3e46c-2a1b-49f7-8948-41a6f075eae3": "kvn_st1a",
+  "2ab8f2d8-079b-4d3b-8a32-63ab262d449c": "kvn_st2a",
+  "7c95e8a9-441c-470e-a696-2a1e02a8e720": "kvn_st3a",
+  "ef3def7e-dc08-4dbb-accb-1947574f9632": "kvn_st3b",
+  "8c0eee32-e6d7-4074-b7c3-f59fd1242f6c": "kvn_st1b",
+  "6bb402cc-481c-4c3f-9de5-ea27e81ead5e": "kvn_ho1a",
+  "fa036132-8631-4f53-9dda-6f0dfa055da7": "kvn_ho2a",
+  "080f3f6f-af97-417a-a7cd-3a82925da3a5": "kvn_na1a",
+};
+
   searchInput.addEventListener("input", () => {
     const query = searchInput.value.toLowerCase().trim();
     let visibleCount = 0;
@@ -271,6 +285,19 @@
     confirmQuitBtn.textContent = "Avslutt SEB";
   }
 
+  function getStudentGroup(account) {
+  const claims = account?.idTokenClaims || {};
+  const groups = Array.isArray(claims.groups) ? claims.groups : [];
+
+  for (const groupId of groups) {
+    if (STUDENT_GROUPS[groupId]) {
+      return STUDENT_GROUPS[groupId];
+    }
+  }
+
+  return null;
+}
+
   async function loadQuitPassword() {
     try {
       const doc = await db.collection("settings").doc("quitPassword").get();
@@ -286,29 +313,31 @@
     }
   }
 
-  async function upsertStudent(account) {
-    const docId = getDocId(account);
-    if (!docId) return;
+async function upsertStudent(account) {
+  const docId = getDocId(account);
+  if (!docId) return;
 
-    const now = new Date().toISOString();
+  const now = new Date().toISOString();
+  const studentGroup = getStudentGroup(account);
 
-    const payload = {
-      name: account.name || "",
-      username: account.username || "",
-      config: getConfigFromUrl(),
-      lastSeen: now
-    };
+  const payload = {
+    name: account.name || "",
+    username: account.username || "",
+    config: getConfigFromUrl(),
+    studentGroup: studentGroup || "",
+    lastSeen: now
+  };
 
-    const ref = db.collection("studentOpens").doc(docId);
-    const snap = await ref.get();
+  const ref = db.collection("studentOpens").doc(docId);
+  const snap = await ref.get();
 
-    if (!snap.exists) {
-      payload.openedAt = now;
-      payload.canQuit = false;
-    }
-
-    await ref.set(payload, { merge: true });
+  if (!snap.exists) {
+    payload.openedAt = now;
+    payload.canQuit = false;
   }
+
+  await ref.set(payload, { merge: true });
+}
 
   async function removeStudent(account) {
     const docId = getDocId(account);
