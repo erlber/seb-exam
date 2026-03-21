@@ -318,11 +318,13 @@ async function upsertStudent(account) {
   if (!docId) return;
 
   const now = new Date().toISOString();
+  const studentGroup = getStudentGroup(account);
 
   const payload = {
     name: account.name || "",
     username: account.username || "",
     config: getConfigFromUrl(),
+    studentGroup: studentGroup || "",
     lastSeen: now
   };
 
@@ -332,16 +334,6 @@ async function upsertStudent(account) {
   if (!snap.exists) {
     payload.openedAt = now;
     payload.canQuit = false;
-  } else {
-    const existingData = snap.data() || {};
-
-    if (!existingData.openedAt) {
-      payload.openedAt = now;
-    }
-
-    if (typeof existingData.canQuit !== "boolean") {
-      payload.canQuit = false;
-    }
   }
 
   await ref.set(payload, { merge: true });
