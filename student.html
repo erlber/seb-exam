@@ -325,6 +325,23 @@
     return "";
   }
 
+  async function markStudentInactive(account) {
+  const docId = getDocId(account);
+  if (!docId) return;
+
+  try {
+    await db.collection("studentOpens").doc(docId).set(
+      {
+        isActive: false,
+        closedAt: new Date().toISOString()
+      },
+      { merge: true }
+    );
+  } catch (err) {
+    console.error("Feil ved markering som inaktiv:", err);
+  }
+}
+
   async function loadQuitPassword() {
     try {
       const doc = await db.collection("settings").doc("quitPassword").get();
@@ -340,52 +357,43 @@
     }
   }
 
-  async function upsertStudent(account) {
-    const docId = getDocId(account);
-    if (!docId) return;
+async function upsertStudent(account) {
+  const docId = getDocId(account);
+  if (!docId) return;
 
-    const now = new Date().toISOString();
-    const studentGroup = getStudentGroup(account);
+  const now = new Date().toISOString();
+  const studentGroup = getStudentGroup(account);
 
-    const payload = {
-      name: account.name || "",
-      username: account.username || "",
-      config: getConfigFromUrl(),
-      studentGroup: studentGroup || "",
-      lastSeen: now
-    };
+  const payload = {
+    name: account.name || "",
+    username: account.username || "",
+    config: getConfigFromUrl(),
+    studentGroup: studentGroup || "",
+    lastSeen: now,
+    isActive: true,
+    closedAt: null
+  };
 
-    const ref = db.collection("studentOpens").doc(docId);
-    const snap = await ref.get();
+  const ref = db.collection("studentOpens").doc(docId);
+  const snap = await ref.get();
 
-    if (!snap.exists) {
+  if (!snap.exists) {
+    payload.openedAt = now;
+    payload.canQuit = false;
+  } else {
+    const existingData = snap.data() || {};
+
+    if (!existingData.openedAt) {
       payload.openedAt = now;
+    }
+
+    if (typeof existingData.canQuit !== "boolean") {
       payload.canQuit = false;
-    } else {
-      const existingData = snap.data() || {};
-
-      if (!existingData.openedAt) {
-        payload.openedAt = now;
-      }
-
-      if (typeof existingData.canQuit !== "boolean") {
-        payload.canQuit = false;
-      }
-    }
-
-    await ref.set(payload, { merge: true });
-  }
-
-  async function removeStudent(account) {
-    const docId = getDocId(account);
-    if (!docId) return;
-
-    try {
-      await db.collection("studentOpens").doc(docId).delete();
-    } catch (err) {
-      console.error("Feil ved sletting:", err);
     }
   }
+
+  await ref.set(payload, { merge: true });
+}
 
   function startHeartbeat() {
     stopHeartbeat();
@@ -416,15 +424,15 @@
     }
   }
 
-  async function quitDirectly() {
-    stopHeartbeat();
+async function quitDirectly() {
+  stopHeartbeat();
 
-    if (currentAccount) {
-      await removeStudent(currentAccount);
-    }
-
-    window.location.href = quitUrl;
+  if (currentAccount) {
+    await markStudentInactive(currentAccount);
   }
+
+  window.location.href = quitUrl;
+}
 
   async function handleQuit() {
     try {
@@ -548,9 +556,24 @@
     if (e.target === quitModal) closeQuitModal();
   });
 
-  window.addEventListener("beforeunload", () => {
-    stopHeartbeat();
-  });
+window.addEventListener("beforeunload", () => {
+  stopHeartbeat();
+
+  if (currentAccount) {
+    const docId = getDocId(currentAccount);
+    if (!docId) return;
+
+    db.collection("studentOpens").doc(docId).set(
+      {
+        isActive: false,
+        closedAt: new Date().toISOString()
+      },
+      { merge: true }
+    ).catch((err) => {
+      console.error("Feil ved beforeunload-markering:", err);
+    });
+  }
+});
 
   initStudentPage();
 </script>

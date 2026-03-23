@@ -270,6 +270,24 @@
       return groupValue.replace("kvn_", "").toUpperCase();
     }
 
+    function isStudentActiveNow(data) {
+      if (data?.isActive === false) {
+        return false;
+      }
+
+      if (!data?.lastSeen) {
+        return false;
+      }
+
+      const lastSeenDate = new Date(data.lastSeen);
+      if (Number.isNaN(lastSeenDate.getTime())) {
+        return false;
+      }
+
+      const diffMs = Date.now() - lastSeenDate.getTime();
+      return diffMs < 30000; // aktiv hvis sett siste 30 sek
+    }
+
     function getSelectedGroups() {
       return Array.from(
         document.querySelectorAll('#groupFilters input[type="checkbox"]:checked')
@@ -297,23 +315,28 @@
 
       const selectedGroups = getSelectedGroups();
 
-      const filteredDocs = docs.filter((doc) => {
-        const data = doc.data();
-        const studentGroup = (data.studentGroup || "").toLowerCase();
+     const filteredDocs = docs.filter((doc) => {
+      const data = doc.data();
+      const studentGroup = (data.studentGroup || "").toLowerCase();
+      const isActiveNow = isStudentActiveNow(data);
 
-        if (selectedGroups.length === 0) {
-          return true;
-        }
+      if (!isActiveNow) {
+        return false;
+      }
 
-        return selectedGroups.includes(studentGroup);
-      });
+      if (selectedGroups.length === 0) {
+        return true;
+      }
+
+      return selectedGroups.includes(studentGroup);
+    });
 
       entryCount.textContent = filteredDocs.length.toString();
 
       if (!filteredDocs.length) {
         studentTableBody.innerHTML = `
           <tr>
-            <td colspan="6" class="empty-state">Ingen elever matcher valgt filter.</td>
+            <td colspan="6" class="empty-state">Ingen aktive elever matcher valgt filter.</td>
           </tr>
         `;
         return;
