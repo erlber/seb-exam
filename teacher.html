@@ -76,7 +76,7 @@
     </section>
 
     <section class="grid">
-      <aside class="card">
+      <aside class="card sidebar-card">
         <h2>Lærerinfo</h2>
 
         <div class="meta-block">
@@ -331,7 +331,17 @@
       return selectedGroups.includes(studentGroup);
     });
 
-      entryCount.textContent = filteredDocs.length.toString();
+    filteredDocs.sort((a, b) => {
+  const dataA = a.data();
+  const dataB = b.data();
+
+  const openedA = dataA.openedAt ? new Date(dataA.openedAt).getTime() : 0;
+  const openedB = dataB.openedAt ? new Date(dataB.openedAt).getTime() : 0;
+
+  return openedB - openedA; // nyeste innlogging øverst
+});
+
+entryCount.textContent = filteredDocs.length.toString();
 
       if (!filteredDocs.length) {
         studentTableBody.innerHTML = `

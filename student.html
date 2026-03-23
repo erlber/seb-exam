@@ -362,6 +362,7 @@ async function upsertStudent(account) {
   if (!docId) return;
 
   const now = new Date().toISOString();
+  const nowMs = Date.now();
   const studentGroup = getStudentGroup(account);
 
   const payload = {
@@ -380,16 +381,27 @@ async function upsertStudent(account) {
   if (!snap.exists) {
     payload.openedAt = now;
     payload.canQuit = false;
-  } else {
-    const existingData = snap.data() || {};
+    await ref.set(payload, { merge: true });
+    return;
+  }
 
-    if (!existingData.openedAt) {
-      payload.openedAt = now;
-    }
+  const existingData = snap.data() || {};
 
-    if (typeof existingData.canQuit !== "boolean") {
-      payload.canQuit = false;
-    }
+  const lastSeenMs = existingData.lastSeen ? new Date(existingData.lastSeen).getTime() : 0;
+  const wasRecentlyActive =
+    existingData.isActive !== false &&
+    lastSeenMs &&
+    !Number.isNaN(lastSeenMs) &&
+    (nowMs - lastSeenMs < 30000);
+
+  const isNewSession = !wasRecentlyActive;
+
+  if (!existingData.openedAt || isNewSession) {
+    payload.openedAt = now;
+  }
+
+  if (typeof existingData.canQuit !== "boolean" || isNewSession) {
+    payload.canQuit = false;
   }
 
   await ref.set(payload, { merge: true });
