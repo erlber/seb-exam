@@ -87,6 +87,28 @@
     </section>
 
     <section class="resource-grid" id="resourceGrid">
+      <a
+        class="resource-card office-only"
+        href="https://www.office.com/launch/word"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-name="word microsoft office tekstbehandling"
+      >
+        <span class="resource-title">Word</span>
+        <span class="resource-subtitle">Microsoft Word i nettleser</span>
+      </a>
+
+      <a
+        class="resource-card office-only"
+        href="https://www.office.com/launch/excel"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-name="excel microsoft office regneark"
+      >
+        <span class="resource-title">Excel</span>
+        <span class="resource-subtitle">Microsoft Excel i nettleser</span>
+      </a>
+
       <a class="resource-card" href="https://itslearning.com/" target="_blank" rel="noopener noreferrer" data-name="it's learning læringsplattform itslearning">
         <span class="resource-title">It's Learning</span>
         <span class="resource-subtitle">Læringsplattform</span>
@@ -233,23 +255,44 @@
   "080f3f6f-af97-417a-a7cd-3a82925da3a5": "kvn_na1a",
 };
 
-  searchInput.addEventListener("input", () => {
-    const query = searchInput.value.toLowerCase().trim();
-    let visibleCount = 0;
+searchInput.addEventListener("input", () => {
+  const query = searchInput.value.toLowerCase().trim();
+  const config = getConfigFromUrl().toLowerCase();
+  let visibleCount = 0;
 
-    resourceCards.forEach((card) => {
-      const text = (card.dataset.name || "").toLowerCase();
+  resourceCards.forEach((card) => {
+    const text = (card.dataset.name || "").toLowerCase();
+    const isOfficeOnly = card.classList.contains("office-only");
 
-      if (text.includes(query)) {
-        card.style.display = "flex";
-        visibleCount++;
-      } else {
-        card.style.display = "none";
-      }
-    });
+    if (isOfficeOnly && config !== "word") {
+      card.style.display = "none";
+      return;
+    }
 
-    noResults.hidden = visibleCount !== 0;
+    if (text.includes(query)) {
+      card.style.display = "flex";
+      visibleCount++;
+    } else {
+      card.style.display = "none";
+    }
   });
+
+  noResults.hidden = visibleCount !== 0;
+});
+
+  function updateOfficeResourcesVisibility() {
+  const config = getConfigFromUrl().toLowerCase();
+  const officeCards = document.querySelectorAll(".office-only");
+
+  officeCards.forEach((card) => {
+    if (config === "word") {
+      card.hidden = false;
+    } else {
+      card.hidden = true;
+    }
+  });
+}
+updateOfficeResourcesVisibility();
 
   function getConfigFromUrl() {
     const params = new URLSearchParams(window.location.search);
