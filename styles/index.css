@@ -130,16 +130,45 @@ body {
   background: #e6f0ff;
 }
 
-.portal-card.quit {
-  border: 2px solid #e74c3c;
-}
-
-.portal-card.quit:hover {
-  background-color: rgba(231, 76, 60, 0.1);
-}
-
 @media (max-width: 700px) {
   .portal-grid {
     grid-template-columns: 1fr;
   }
+}
+.portal-card { display: block; text-decoration: none; font: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+body:has(dialog[open]) { overflow: hidden; }
+dialog {
+  width: min(620px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  border: 0;
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  color: var(--text);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+dialog::backdrop { background: rgba(20, 32, 51, .6); }
+.dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.dialog-heading h2 { margin: 0; color: var(--primary); }
+.close-dialog { border: 0; background: #eef2ff; color: var(--primary); border-radius: 50%; min-width: 44px; height: 44px; font-size: 1.8rem; cursor: pointer; }
+.config-options { display: grid; gap: 16px; margin: 24px 0; }
+.config-option { display: block; padding: 22px; border: 2px solid #dce3f5; border-radius: var(--radius-lg); text-decoration: none; background: #f7f9ff; }
+.config-option:hover { border-color: var(--accent); background: #eef2ff; }
+.launch-help, dialog details { color: var(--muted); line-height: 1.6; }
+dialog summary { cursor: pointer; font-weight: 700; }
+dialog li { margin: 8px 0; }
+#launchStatus:empty { display: none; }
+#launchStatus { padding: 12px; border-radius: 8px; background: #eef2ff; line-height: 1.5; }
+@media (max-width: 480px) {
+  dialog { padding: 20px; }
+  .brand { border-radius: 18px; padding: 10px; }
+  .brand-text { font-size: .85rem; }
+  .hero { padding: 28px; }
+  .hero h1 { font-size: 2rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-card { transition: none; }
+  .portal-card:hover { transform: none; }
 }
