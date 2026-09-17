@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <script src="./script/msal-browser.min.js"></script>
+  <script src="./script/launcher.js" defer></script>
 </head>
 <body>
 
@@ -21,7 +21,7 @@
   <div class="brand">
     <img
       class="logo"
-      src="https://erlber.github.io/seb-exam/img/logo_black_KVN_outer.png"
+      src="./img/logo_black_KVN_outer.png"
       alt="KVN logo"
     />
     <span class="brand-text">Kristen Videregående Skole Nordland</span>
@@ -36,57 +36,47 @@
   </section>
 
   <section class="portal-grid">
-    <button class="portal-card student" id="studentBtn">
+    <button class="portal-card student" id="studentBtn" type="button" aria-haspopup="dialog" aria-controls="configDialog">
       <span class="portal-title">Elevportal</span>
-      <span class="portal-subtitle">Start eksamen og åpne nettressurser</span>
+      <span class="portal-subtitle">Velg oppsett og start Safe Exam Browser</span>
     </button>
 
-    <button class="portal-card teacher" id="teacherBtn">
+    <a class="portal-card teacher" href="./teacher.html">
       <span class="portal-title">Lærerportal</span>
-      <span class="portal-subtitle">Se avslutningskode og administrasjon</span>
-    </button>
+      <span class="portal-subtitle">Åpne læreroversikten i nettleseren</span>
+    </a>
 
-     <button class="portal-card quit" id="quitBtn">
-        <span class="portal-title">Avslutt SEB</span>
-        <span class="portal-subtitle">Lukk Safe Exam Browser</span>
-    </button>
   </section>
 </main>
 
-<script>
-  const isLocalDev =
-    window.location.hostname === "127.0.0.1" ||
-    window.location.hostname === "localhost";
-
-  const teacherRedirectUri = isLocalDev
-    ? "http://localhost:5501/teacher.html"
-    : "https://erlber.github.io/seb-exam/teacher.html";
-
-  const studentRedirectUri = isLocalDev
-    ? "http://localhost:5501/student.html"
-    : "https://erlber.github.io/seb-exam/student.html";
-
-  const quitUrl = "https://kvn.no/seb/quit";
-
-function withCurrentQuery(url) {
-  return `${url}${window.location.search || ""}`;
-}
-
-document.getElementById("studentBtn").addEventListener("click", () => {
-  window.location.href = withCurrentQuery(studentRedirectUri);
-});
-
-document.getElementById("teacherBtn").addEventListener("click", () => {
-  window.location.href = withCurrentQuery(teacherRedirectUri);
-});
-
-  const quitBtn = document.getElementById("quitBtn");
-  if (quitBtn) {
-    quitBtn.addEventListener("click", () => {
-      window.location.href = quitUrl;
-    });
-  }
-</script>
+<dialog id="configDialog" aria-labelledby="configTitle" aria-describedby="configDescription">
+  <div class="dialog-heading">
+    <h2 id="configTitle">Velg eksamensoppsett</h2>
+    <button id="closeConfig" class="close-dialog" type="button" aria-label="Lukk" autofocus>×</button>
+  </div>
+  <p id="configDescription">Velg oppsettet læreren har bedt deg bruke.</p>
+  <div class="config-options">
+    <a class="config-option" href="sebs://erlber.github.io/seb-exam/SebEksamen.seb" data-config="SebEksamen.seb">
+      <span class="portal-title">Start uten Word</span>
+      <span class="portal-subtitle">Eksamen uten Word og Excel</span>
+    </a>
+    <a class="config-option" href="sebs://erlber.github.io/seb-exam/SebEksamenWord.seb" data-config="SebEksamenWord.seb">
+      <span class="portal-title">Start med Word</span>
+      <span class="portal-subtitle">Eksamen med Word og Excel</span>
+    </a>
+  </div>
+  <p class="launch-help">Safe Exam Browser må være installert. Velg «Åpne Safe Exam Browser» hvis nettleseren spør.</p>
+  <p id="launchStatus" role="status"></p>
+  <details>
+    <summary>Starter ikke SEB?</summary>
+    <p>Prøv knappen igjen, eller last ned riktig fil og åpne den med Safe Exam Browser. Kontakt IT hvis SEB ikke er installert.</p>
+    <ul>
+      <li><a href="./SebEksamen.seb" download>Last ned oppsett uten Word</a></li>
+      <li><a href="./SebEksamenWord.seb" download>Last ned oppsett med Word</a></li>
+    </ul>
+  </details>
+</dialog>
+<noscript><p class="wrapper">Aktiver JavaScript for å velge eksamensoppsett. Du kan også laste ned <a href="./SebEksamen.seb">oppsettet uten Word</a> eller <a href="./SebEksamenWord.seb">oppsettet med Word</a> og åpne filen i SEB.</p></noscript>
 
 </body>
 </html>
